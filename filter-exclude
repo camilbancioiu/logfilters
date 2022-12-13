@@ -1,0 +1,66 @@
+#!/usr/bin/python
+
+import re
+import sys
+
+
+exclusion_list = [
+    'get.*key = ',
+    'storage modified',
+    'storage set to',
+    'storage under address',
+    'gas used by builtin',
+    'UpdateGasStateOnSuccess',
+    'ESDT transfer',
+    'ESDT post-transfer',
+    'NewCrossTxCache',
+    'NewImmunityCache',
+    'MonitorNewCache',
+    'added self',
+    'transfer value',
+    'log entry',
+    'storage deleted',
+    'cross info',
+    'computeValidatorsGroup',
+    'request',
+    'coordinator',
+    'chronology',
+    'GetUserAccount',
+    'blockchainhook',
+] + [
+    'checkFinalGas',
+    'call SC method',
+    'init state\n',
+    'runtime breakpoint set',
+    'get function to call',
+    'state content censored',
+    'Gas Trace for',
+]
+
+
+def main():
+    def make_re(regex): return re.compile(regex)
+    exclude = list(map(make_re, exclusion_list))
+
+    filtered = apply_filter(exclude, sys.stdin)
+    for line in filtered:
+        print(line, end='')
+
+
+def is_line_excluded(exclude, line):
+    for excluded in exclude:
+        if excluded.search(line) is not None:
+            return True
+    return False
+
+
+def apply_filter(exclude, infile):
+    for line in infile:
+        if not is_line_excluded(exclude, line):
+            yield line
+
+
+if __name__ == '__main__':
+    main()
+
+# vim: ft=python

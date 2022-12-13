@@ -1,0 +1,74 @@
+#!/usr/bin/python
+
+import sys
+import re
+
+from aliases import make_alias_replacer, Aliases, AliasSource
+
+
+ALPHABET = ['ALPHA', 'BETA', 'GAMMA', 'DELTA', 'EPSILON', 'ZETA',
+            'ETA', 'THETA', 'IOTA', 'KAPPA', 'LAMBDA', 'MU', 'NU',
+            'XI', 'OMICRON', 'PI', 'RHO', 'SIGMA', 'TAU', 'UPSILON',
+            'PHI', 'CHI', 'PSI', 'OMEGA']
+
+ADDRESS_KEYS = ['caller', 'dest', 'contract', 'sender', 'address']
+ADDRESS_KEYS_RE = '|'.join(ADDRESS_KEYS)
+
+ADDRESS_RE = re.compile(f'({ADDRESS_KEYS_RE}) = (0000[0-9a-f]*) ')
+CODEHASH_RE = re.compile('codeHash = ([0-9a-f]*) ')
+INSTANCE_ID_RE = re.compile('id = (0x[0-9a-f]*) ')
+
+
+def main():
+    filtered = apply_filter(sys.stdin)
+    for line in filtered:
+        print(line, end='')
+
+
+def apply_filter(infile):
+    alias_addresses = make_alias_replacer(ADDRESS_RE, 2,
+                                          make_new_address_alias,
+                                          ALPHABET)
+
+    alias_codehashes = make_alias_replacer(CODEHASH_RE, 1,
+                                           make_new_codehash_alias,
+                                           dict())
+
+    alias_instances = make_alias_replacer(INSTANCE_ID_RE, 1,
+                                          make_new_instance_alias,
+                                          dict())
+    for line in infile:
+        line = alias_addresses(line)
+        line = alias_codehashes(line)
+        line = alias_instances(line)
+        yield line
+
+
+def make_new_address_alias(aliases: Aliases,
+                           alias_source: AliasSource,
+                           original_string: str) -> str:
+    index = len(aliases)
+    identifier = alias_source[index % len(alias_source)]
+    extra_index = index // len(alias_source)
+    alias = identifier + str(extra_index)
+    return alias
+
+
+def make_new_codehash_alias(aliases: Aliases,
+                            alias_source: AliasSource,
+                            original_string: str) -> str:
+    index = len(aliases)
+    return f'<CODE:{index}>'
+
+
+def make_new_instance_alias(aliases: Aliases,
+                            alias_source: AliasSource,
+                            original_string: str) -> str:
+    index = len(aliases)
+    return f'{{I:0x{index:04d}}}'
+
+
+if __name__ == '__main__':
+    main()
+
+# vim: ft=python
