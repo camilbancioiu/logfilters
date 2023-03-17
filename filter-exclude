@@ -35,6 +35,13 @@ exclusion_list = [
     'get function to call',
     'state content censored',
     'Gas Trace for',
+] + [
+    'storage under address',
+    'storage added',
+    'init state    ',
+    'UpdateGasState',
+    'runtime breakpoint set',
+    'verified contract code',
 ]
 
 

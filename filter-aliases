@@ -65,7 +65,7 @@ def make_new_instance_alias(aliases: Aliases,
                             alias_source: AliasSource,
                             original_string: str) -> str:
     index = len(aliases)
-    return f'{{I:0x{index:04d}}}'
+    return f'{{I:{index:04d}}}'
 
 
 if __name__ == '__main__':
